@@ -4,3 +4,6 @@ dist
 .env
 .claude
 *.tsbuildinfo
+
+.vercel
+.env*

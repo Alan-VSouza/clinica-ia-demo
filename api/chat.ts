@@ -1,4 +1,4 @@
-import { atender } from '../shared/agente'
+import { atender } from '../shared/agente.js'
 
 export const maxDuration = 30
 

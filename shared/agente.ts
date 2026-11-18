@@ -1,4 +1,4 @@
-import { CLINICA, horariosLivres, textoClinica } from './clinica'
+import { CLINICA, horariosLivres, textoClinica } from './clinica.js'
 
 // Assistente virtual da clínica fictícia. A IA (Google Gemini) só interpreta e redige;
 // horários e agendamentos são consultados e validados aqui no servidor.
