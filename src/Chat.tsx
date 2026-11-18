@@ -44,7 +44,8 @@ export default function Chat() {
 
   useEffect(() => {
     const el = listaRef.current
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    // Na abertura (só a boas-vindas) fica no topo; depois acompanha a última mensagem.
+    if (el && msgs.length > 1) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [msgs, enviando])
 
   async function enviar(conteudo: string) {
