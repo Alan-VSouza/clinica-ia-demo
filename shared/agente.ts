@@ -11,7 +11,7 @@ type Acao =
 // Usa a API do Google direto. No Netlify, o AI Gateway também pode injetar GOOGLE_GEMINI_BASE_URL.
 const BASE = (process.env.GOOGLE_GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '')
 // Modelos tentados em ordem; o primeiro aceito fica guardado enquanto a função estiver quente.
-const CANDIDATOS = [process.env.GEMINI_MODEL, 'gemini-flash-latest', 'gemini-3-flash-preview', 'gemini-3-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'].filter(Boolean) as string[]
+const CANDIDATOS = [process.env.GEMINI_MODEL, 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3-flash-preview', 'gemini-2.5-flash'].filter(Boolean) as string[]
 let modeloOk: string | null = null
 const MAX_MSGS = 30
 const MAX_CHARS = 600
@@ -155,19 +155,29 @@ export async function atender(req: Request): Promise<Response> {
       generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
     })
     let r!: Response
-    for (const modelo of modeloOk ? [modeloOk] : CANDIDATOS) {
-      r = await fetch(`${BASE}/v1beta/models/${modelo}:generateContent`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': chave },
-        body: corpoReq,
-      })
+    const fila = modeloOk ? [modeloOk, ...CANDIDATOS.filter((m) => m !== modeloOk)] : CANDIDATOS
+    for (const modelo of fila) {
+      try {
+        r = await fetch(`${BASE}/v1beta/models/${modelo}:generateContent`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-goog-api-key': chave },
+          body: corpoReq,
+          signal: AbortSignal.timeout(12000),
+        })
+      } catch {
+        console.log('MODELO_FALHOU ' + modelo + ' timeout')
+        r = new Response('{}', { status: 504 })
+        continue
+      }
       if (r.ok) {
         modeloOk = modelo
         break
       }
+      console.log('MODELO_FALHOU ' + modelo + ' ' + r.status + ' ' + (await r.clone().text()).slice(0, 160).replace(/\s+/g, ' '))
+      if (r.status >= 500 || r.status === 429) continue // sobrecarga ou cota do modelo: tenta o próximo
       if (r.status !== 400 && r.status !== 404) break
       const txt = await r.clone().text()
-      if (!/unknown_model|not found|suitable provider|not supported/i.test(txt)) break
+      if (!/unknown_model|not found|suitable provider|not supported|no longer available/i.test(txt)) break
     }
     if (!r.ok) {
       console.log('ERRO_GEMINI status=' + r.status + ' corpo=' + (await r.text()).slice(0, 300).replace(/\s+/g, ' '))
