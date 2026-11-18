@@ -11,7 +11,8 @@ type Acao =
 // Usa a API do Google direto. No Netlify, o AI Gateway também pode injetar GOOGLE_GEMINI_BASE_URL.
 const BASE = (process.env.GOOGLE_GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/$/, '')
 // Modelos tentados em ordem; o primeiro aceito fica guardado enquanto a função estiver quente.
-const CANDIDATOS = [process.env.GEMINI_MODEL, 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3-flash-preview', 'gemini-2.5-flash'].filter(Boolean) as string[]
+// O "lite" vem primeiro: no plano grátis do Google é o que responde rápido e sem limite apertado.
+const CANDIDATOS = [process.env.GEMINI_MODEL, 'gemini-flash-lite-latest', 'gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3-flash-preview'].filter(Boolean) as string[]
 let modeloOk: string | null = null
 const MAX_MSGS = 30
 const MAX_CHARS = 600
@@ -154,28 +155,33 @@ export async function atender(req: Request): Promise<Response> {
       tools: FERRAMENTAS,
       generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
     })
-    let r!: Response
     const fila = modeloOk ? [modeloOk, ...CANDIDATOS.filter((m) => m !== modeloOk)] : CANDIDATOS
-    for (const modelo of fila) {
+    const chamar = async (modelo: string, ms: number, cancelar?: AbortSignal): Promise<Response> => {
       try {
-        r = await fetch(`${BASE}/v1beta/models/${modelo}:generateContent`, {
+        const sinais = [AbortSignal.timeout(ms), ...(cancelar ? [cancelar] : [])]
+        const resp = await fetch(`${BASE}/v1beta/models/${modelo}:generateContent`, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-goog-api-key': chave },
           body: corpoReq,
-          signal: AbortSignal.timeout(12000),
+          signal: AbortSignal.any(sinais),
         })
+        if (!resp.ok) console.log('MODELO_FALHOU ' + modelo + ' ' + resp.status + ' ' + (await resp.clone().text()).slice(0, 160).replace(/\s+/g, ' '))
+        return resp
       } catch {
-        console.log('MODELO_FALHOU ' + modelo + ' timeout')
-        r = new Response('{}', { status: 504 })
-        continue
+        return new Response('{}', { status: 504 })
       }
+    }
+
+    // Um modelo por vez (chamadas em paralelo gastam o dobro da cota grátis do Google).
+    // Se um estiver sobrecarregado, sem cota ou travado, passa para o próximo.
+    let r: Response = new Response('{}', { status: 504 })
+    for (const modelo of fila) {
+      r = await chamar(modelo, 8000)
       if (r.ok) {
         modeloOk = modelo
         break
       }
-      console.log('MODELO_FALHOU ' + modelo + ' ' + r.status + ' ' + (await r.clone().text()).slice(0, 160).replace(/\s+/g, ' '))
-      if (r.status >= 500 || r.status === 429) continue // sobrecarga ou cota do modelo: tenta o próximo
-      if (r.status !== 400 && r.status !== 404) break
+      if (r.status >= 500 || r.status === 429) continue
       const txt = await r.clone().text()
       if (!/unknown_model|not found|suitable provider|not supported|no longer available/i.test(txt)) break
     }
