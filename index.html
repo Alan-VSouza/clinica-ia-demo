@@ -1,19 +1,49 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-type="service" data-radius="soft" data-buttons="block" data-motion>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clínica Sorriso Claro · Demo de atendimento com IA</title>
-    <meta name="description" content="Demonstração de uma assistente de IA que tira dúvidas e agenda consultas para uma clínica odontológica fictícia. Feito por Alan Souza." />
-    <meta property="og:title" content="Demo: assistente de IA para clínicas" />
-    <meta property="og:description" content="Tira dúvidas, consulta a agenda e marca consultas sozinha. Teste agora." />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%232E5241'/><path d='M20 22c4-4 9-3 12 0 3-3 8-4 12 0 4 5 1 14-2 22-1 3-4 3-5 0l-2-7c-1-2-5-2-6 0l-2 7c-1 3-4 3-5 0-3-8-6-17-2-22z' fill='white'/></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Clínica Sorriso Claro: clínica odontológica no Centro de São Carlos</title>
+    <meta name="description" content="Demonstração de uma assistente de IA que tira dúvidas, consulta convênios e marca consultas para uma clínica odontológica fictícia em São Carlos." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Clínica Sorriso Claro: clínica odontológica no Centro de São Carlos" />
+    <meta property="og:description" content="Converse com a Clara, a assistente de IA que marca consultas nesta demonstração." />
+    <meta property="og:image" content="/share.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#fbfaf7" />
+    <meta name="site-kind" content="other" />
+    <meta name="page-type" content="service" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <meta name="color-scheme" content="light" />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..700,0..100,0..1&family=Figtree:wght@400..600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/system.css" />
+    <link rel="stylesheet" href="/assets/ui/cards.css" />
+    <link rel="stylesheet" href="/assets/motion/motion.css" />
+    <link rel="stylesheet" href="/assets/layout/layout.css" />
+    <link rel="stylesheet" href="/assets/moments/picture-develops/moment.css" />
+    <style>
+      :root {
+        --p-bg: #fbfaf7; --p-surface: #e7efe8; --p-ink: #17231d; --p-muted: #5e6661;
+        --p-accent: #2e5241; --p-accent-ink: #fbfaf7; --p-action: #2e5241; --p-action-ink: #fbfaf7;
+        --p-inv-bg: #17231d; --p-inv-surface: #243029; --p-inv-ink: #fbfaf7; --p-inv-muted: #9ca19c;
+        --p-inv-accent: #fbfaf7; --p-inv-accent-ink: #17231d; --p-inv-action: #fbfaf7; --p-inv-action-ink: #17231d;
+        --font-display: "Fraunces", Georgia, serif;
+        --font-text: "Figtree", system-ui, sans-serif;
+        --display-weight: 400;
+        --display-tracking: -0.02em;
+        --display-tracking-xl: -0.028em;
+        --display-axes: 'SOFT' 30, 'WONK' 0;
+      }
+    </style>
+    <script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+    <script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
   </head>
   <body>
+    <!-- type: service (clínica odontológica)
+         deal: hero split, nav nav-mega, close close-photo, footer footer-columns, rhythm space, buttons block, mark wordmark, grounds none
+         moments: picture-develops in #para-empresas
+         colours: the client's own (the sage style Alan approved, via start.mjs brand), type fraunces -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

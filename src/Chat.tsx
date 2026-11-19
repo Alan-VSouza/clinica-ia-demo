@@ -7,7 +7,7 @@ const SUGESTOES = ['Quanto custa uma limpeza?', 'Vocês aceitam convênio?', 'Qu
 
 const BOAS_VINDAS: Msg = {
   role: 'assistente',
-  texto: 'Oi! Eu sou a **Clara**, assistente virtual da Clínica Sorriso Claro. Posso tirar dúvidas sobre tratamentos, preços e convênios, ou marcar sua consulta. Como posso ajudar?',
+  texto: 'Oi, eu sou a **Clara**, assistente virtual da Clínica Sorriso Claro. Posso tirar dúvidas sobre tratamentos, preços e convênios, ou marcar sua consulta. Como posso ajudar?',
 }
 
 /** Renderiza **negrito** e listas com "- " sem usar HTML vindo da IA. */
@@ -86,14 +86,14 @@ export default function Chat() {
   const mostrarSugestoes = msgs.length <= 2 && !enviando
 
   return (
-    <section className="chat" aria-label="Conversa com a Clara, assistente da clínica">
-      <header className="chat-topo">
+    <div className="chat" role="region" aria-label="Conversa com a Clara, assistente da clínica">
+      <div className="chat-topo">
         <div className="avatar" aria-hidden="true">C</div>
         <div>
           <strong>Clara</strong>
           <span className="status"><i /> online · assistente com IA da Sorriso Claro</span>
         </div>
-      </header>
+      </div>
 
       <div className="chat-msgs" role="log" aria-live="polite" ref={listaRef}>
         {msgs.map((m, i) => (
@@ -142,6 +142,6 @@ export default function Chat() {
         </button>
       </form>
       <p className="chat-rodape">Demonstração com clínica fictícia. Não envie dados pessoais.</p>
-    </section>
+    </div>
   )
 }

@@ -1,203 +1,242 @@
-import { useEffect } from 'react'
-import Chat, { focarChat } from './Chat'
-import { CLINICA } from '../shared/clinica'
+import { useEffect, useMemo } from 'react'
+import Chat from './Chat'
+import { CLINICA, horariosLivres } from '../shared/clinica'
 
-function irParaChat(e?: React.MouseEvent) {
-  e?.preventDefault()
-  document.getElementById('atendimento')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  setTimeout(focarChat, 450)
+const KIT = ['/assets/system.js', '/assets/motion/motion.js', '/assets/layout/layout.js']
+
+function usarKit() {
+  useEffect(() => {
+    if (document.querySelector('script[data-kit]')) return
+    for (const src of KIT) {
+      const el = document.createElement('script')
+      el.type = 'module'
+      el.src = src
+      el.dataset.kit = ''
+      document.head.appendChild(el)
+    }
+  }, [])
 }
 
-const servico = (id: string) => CLINICA.servicos.find((s) => s.id === id)!
+function proximoHorario() {
+  const h = horariosLivres()[0]
+  if (!h) return null
+  const fmt = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(d)
+  const dia = h.data === fmt(new Date()) ? 'Hoje' : h.data === fmt(new Date(Date.now() + 86400000)) ? 'Amanhã' : h.diaSemana[0].toUpperCase() + h.diaSemana.slice(1)
+  return { dia, hora: String(Number(h.hora.slice(0, 2))) + 'h' }
+}
 
-const DESTAQUES = [
-  { id: 'limpeza', foto: '/img/exame.jpg', alt: 'Dentista examinando os dentes de uma paciente com espelho clínico' },
-  { id: 'clareamento', foto: '/img/sorriso.jpg', alt: 'Sorriso com dentes claros, de perfil' },
-  { id: 'implante', foto: '/img/implante.jpg', alt: 'Modelo de implante dentário ao lado de dentes naturais' },
+const TRATAMENTOS: [string, string][] = [
+  ['Limpeza e flúor', 'Placa e tártaro, polimento, 60 minutos'],
+  ['Clareamento dental', 'De consultório ou caseiro, com moldeira'],
+  ['Restauração em resina', 'Cárie e pequenas fraturas'],
+  ['Tratamento de canal', 'Valor definido na avaliação'],
+  ['Aparelho ortodôntico', 'Fixo ou alinhador, com manutenção mensal'],
+  ['Implante dentário', 'Planejado com exame de imagem'],
 ]
-const OUTROS = ['restauracao', 'canal', 'ortodontia']
 
 export default function App() {
-  useEffect(() => {
-    const alvo = document.getElementById('atendimento')
-    if (!alvo || !('IntersectionObserver' in window)) return
-    const obs = new IntersectionObserver(([e]) => document.body.classList.toggle('chat-visivel', e.isIntersecting), { threshold: 0.15 })
-    obs.observe(alvo)
-    return () => obs.disconnect()
-  }, [])
+  usarKit()
+  const proximo = useMemo(proximoHorario, [])
 
   return (
     <>
-      <p className="aviso-demo">
-        Site de demonstração: a Clínica Sorriso Claro não existe. A assistente de IA é real. <a href="#para-empresas">Entenda</a>
-      </p>
-
-      <header className="topo">
-        <a className="marca" href="/" aria-label="Sorriso Claro, início">
-          <span className="selo" aria-hidden="true">sc</span>
-          <span className="marca-nome">
-            sorriso claro<small>Odontologia · São Carlos</small>
-          </span>
-        </a>
-        <nav aria-label="Seções">
-          <a href="#tratamentos">Tratamentos</a>
-          <a href="#primeira-consulta">Primeira consulta</a>
-          <a href="#convenios">Convênios</a>
-          <a href="#visite">Como chegar</a>
-        </nav>
-        <a className="btn" href="#atendimento" onClick={irParaChat}>Agendar avaliação</a>
+      <header className="nav">
+        <div className="wrap nav__bar">
+          <a className="skip-link" href="#top">Pular para o conteúdo</a>
+          <a className="nav__logo" href="#top">Sorriso Claro</a>
+          <nav className="nav__links" aria-label="Principal">
+            <div className="nav__item">
+              <a className="nav__link" href="#tratamentos">Tratamentos <svg className="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></a>
+              <div className="nav__menu">
+                <div className="wrap grid">
+                  <div className="menu-col span-3">
+                    <p className="t-label">Prevenção</p>
+                    <a href="#tratamentos">Limpeza<span>Placa e tártaro, 60 min</span></a>
+                    <a href="#tratamentos">Clareamento<span>Consultório ou caseiro</span></a>
+                  </div>
+                  <div className="menu-col span-3">
+                    <p className="t-label">Tratamento</p>
+                    <a href="#tratamentos">Canal e restauração<span>Valor na avaliação</span></a>
+                    <a href="#tratamentos">Implante<span>Com exame de imagem</span></a>
+                  </div>
+                  <a className="menu-card span-3 start-10" href="#primeira-consulta">
+                    <div className="panel"><img className="frame__img" src="/img/implante.jpg" alt="Modelo de implante dentário entre dentes de resina" /></div>
+                    <span className="t-card">Avaliação sem custo</span>
+                    <span className="t-small muted">30 minutos, com plano por escrito</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="nav__item"><a className="nav__link" href="#primeira-consulta">Consulta</a></div>
+            <div className="nav__item"><a className="nav__link" href="#visite">Convênios</a></div>
+            <div className="nav__item"><a className="nav__link" href="#para-empresas">Empresas</a></div>
+          </nav>
+          <div className="nav__actions">
+            <a className="btn btn--primary" href="#agendar">Marcar consulta com a Clara</a>
+          </div>
+          <button className="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          </button>
+        </div>
       </header>
 
-      <section className="hero">
-        <img className="hero-foto" src="/img/consultorio.jpg" alt="" width="1600" height="1070" />
-        <div className="hero-dentro">
-          <div className="hero-texto">
-            <p className="rotulo claro">Odontologia no Centro de São Carlos</p>
-            <h1>
-              Seu sorriso.
-              <br />
-              Seu tempo.
-              <br />
-              <em>Nossa atenção.</em>
-            </h1>
-            <p className="lead">
-              Tire dúvidas e marque sua avaliação agora com a Clara, nossa assistente. Ela conhece os tratamentos, os convênios e a agenda dos dentistas, e responde a qualquer hora.
-            </p>
-            <div className="hero-acoes">
-              <a className="btn claro" href="#atendimento" onClick={irParaChat}>Conversar com a Clara</a>
-              <a className="btn contorno" href="#tratamentos">Ver tratamentos</a>
-            </div>
-          </div>
-          <div className="hero-chat" id="atendimento">
-            <Chat />
-          </div>
-        </div>
-      </section>
-
-      <ul className="faixa" aria-label="Diferenciais">
-        <li><strong>Atendimento sem pressa</strong><span>Consultas com hora marcada e tempo para conversar</span></li>
-        <li><strong>Plano de tratamento claro</strong><span>Você entende cada etapa antes de começar</span></li>
-        <li><strong>{CLINICA.convenios.length} convênios aceitos</strong><span>E atendimento particular com parcelamento</span></li>
-      </ul>
-
-      <main>
-        <section id="tratamentos" className="bloco">
-          <div className="cabeca">
-            <div>
-              <p className="rotulo">Tratamentos</p>
-              <h2>Cuidado completo,<br />do jeito certo.</h2>
-            </div>
-            <p className="cabeca-texto">Da prevenção aos implantes, com um plano feito para você. Valores e convênios: pergunte à Clara, ela responde na hora.</p>
-          </div>
-
-          <div className="tratamentos">
-            <article className="trat-grande">
-              <img src="/img/consultorio.jpg" alt="Consultório com cadeira odontológica e janela ampla" loading="lazy" />
-              <div>
-                <h3>{servico('avaliacao').nome}</h3>
-                <p>{servico('avaliacao').descricao} É o primeiro passo de qualquer tratamento.</p>
-                <a className="link-seta" href="#atendimento" onClick={irParaChat}>Agendar avaliação</a>
+      <main id="top">
+        <section className="hero hero--split" data-enter aria-labelledby="hero-h">
+          <div className="wrap"><div className="hero-text grid hero__grid">
+            <div className="hero__text span-5">
+              <p className="hero__kicker"><span className="dot" aria-hidden="true" />Demonstração: clínica fictícia, assistente real</p>
+              <h1 id="hero-h">Clínica odontológica no Centro de São Carlos</h1>
+              <p className="hero__lead">A Clara tira dúvidas, confere seu convênio e marca a consulta. Avaliação inicial sem custo.</p>
+              <div className="btn-row">
+                <a className="btn btn--primary" href="#agendar">Marcar consulta com a Clara</a>
+                <a className="btn btn--secondary" href="#tratamentos">Ver tratamentos</a>
               </div>
-            </article>
-            <div className="trat-lista">
-              {DESTAQUES.map((d) => (
-                <article key={d.id} className="trat-item">
-                  <img src={d.foto} alt={d.alt} loading="lazy" />
-                  <div>
-                    <h3>{servico(d.id).nome}</h3>
-                    <p>{servico(d.id).descricao}</p>
-                  </div>
-                </article>
-              ))}
+            </div>
+            <div className="hero__media span-6 start-7">
+              <img src="/img/conversa.jpg" alt="Dentista conversando com uma paciente sentada na cadeira do consultório" style={{ ['--ly-pos' as string]: '45% 50%' }} {...{ fetchpriority: 'high' }} />
+              {proximo && (
+                <div className="ly-float">
+                  <div className="ly-float__row"><span className="ly-live">{proximo.dia}</span><span>{proximo.hora}</span></div>
+                  <div className="ly-float__title">Próximo horário livre para avaliação</div>
+                </div>
+              )}
+            </div>
+          </div></div>
+        </section>
+
+        <section className="section" id="agendar" aria-labelledby="agendar-h" style={{ ['--hm' as string]: 2 }}>
+          <div className="wrap">
+            <div className="grid fill">
+              <div className="span-5 stack-4">
+                <h2 id="agendar-h">Consulta marcada pelo chat da Clara</h2>
+                <p className="t-lead">Pergunte como falaria com a recepção: se o convênio cobre limpeza, quanto custa um clareamento ou o primeiro horário de sábado.</p>
+                <p>Dor forte, inchaço ou sangramento têm encaixe no mesmo dia em horário comercial. A Clara não dá diagnóstico: ela marca a consulta.</p>
+              </div>
+              <div className="span-6 start-7 chat-frame" id="atendimento" data-visual data-ui="clara">
+                <Chat />
+              </div>
             </div>
           </div>
+        </section>
 
-          <ul className="outros">
-            {OUTROS.map((id) => (
-              <li key={id}>
-                <strong>{servico(id).nome}</strong>
-                <span>{servico(id).descricao}</span>
-              </li>
-            ))}
-          </ul>
+        <section className="section" id="tratamentos" aria-labelledby="tratamentos-h" style={{ ['--hm' as string]: 2 }}>
+          <div className="wrap">
+            <div className="grid grid--top fill">
+              <div className="span-5 stack-4">
+                <h2 id="tratamentos-h">Tratamentos da clínica</h2>
+                <p>Valores na avaliação, que é sem custo. Pagamento em até 6x sem juros acima de R$ 600.</p>
+                <ul className="rows">
+                  {TRATAMENTOS.map(([nome, linha]) => (
+                    <li key={nome}><span className="rows__name">{nome}<small>{linha}</small></span></li>
+                  ))}
+                </ul>
+              </div>
+              <div className="frame frame--photo frame--fill span-6 start-7 foto-trat">
+                <img className="frame__img" src="/img/exame.jpg" alt="Dentista examinando os dentes de um paciente com espelho" loading="lazy" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="primeira-consulta" aria-labelledby="primeira-consulta-h" style={{ ['--hm' as string]: 2 }}>
+          <div className="wrap">
+            <div className="section-head"><h2 id="primeira-consulta-h">Primeira consulta em 3 etapas</h2></div>
+            <div className="grid">
+              <article className="card card--row span-4">
+                <span className="step-num">1</span>
+                <h3>Avaliação de 30 minutos</h3>
+                <p>Exame clínico e, quando precisa, radiografia. Sem custo e sem compromisso.</p>
+                <div className="panel"><img className="frame__img" src="/img/raio-x.jpg" alt="Dentista analisando radiografias num painel de luz" loading="lazy" /></div>
+              </article>
+              <article className="card card--row span-4">
+                <span className="step-num">2</span>
+                <h3>Plano da clínica por escrito</h3>
+                <p>Cada procedimento, o número de sessões e o valor, antes de começar.</p>
+                <div className="panel"><img className="frame__img" src="/img/tomografia.jpg" alt="Mão de luva apontando uma tomografia dentária num tablet" loading="lazy" /></div>
+              </article>
+              <article className="card card--row span-4">
+                <span className="step-num">3</span>
+                <h3>Tratamento com lembrete</h3>
+                <p>A Clara confirma cada sessão pelo WhatsApp um dia antes.</p>
+                <div className="panel"><img className="frame__img" src="/img/cadeira.jpg" alt="Cadeira odontológica branca num consultório claro" loading="lazy" /></div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="visite" aria-labelledby="visite-h" style={{ ['--hm' as string]: 2 }}>
+          <div className="wrap">
+            <div className="grid grid--top fill">
+              <div className="span-5 stack-4">
+                <h2 id="visite-h">Endereço, horários e convênios</h2>
+                <address className="visit__address">Centro<br />São Carlos</address>
+                <a className="link" href="https://www.openstreetmap.org/search?query=Centro%20S%C3%A3o%20Carlos">Ver a região no mapa</a>
+                <dl className="hours" data-tz="America/Sao_Paulo" data-assumed="">
+                  <dt data-days="mon-fri">Segunda a sexta</dt><dd>8h às 18h</dd>
+                  <dt data-days="sat">Sábado</dt><dd>8h às 12h</dd>
+                  <dt data-days="sun">Domingo e feriados</dt><dd>Fechado</dd>
+                </dl>
+                <p>Convênios: {CLINICA.convenios.join(', ')}.</p>
+                <p>{CLINICA.estacionamento}</p>
+              </div>
+              <div className="frame frame--photo span-6 start-7" style={{ aspectRatio: '1 / 1' }}>
+                <img className="frame__img" src="/img/recepcao.jpg" alt="Sala de espera clara com cadeiras pretas e uma oliveira" loading="lazy" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="para-empresas" aria-labelledby="para-empresas-h" style={{ ['--hm' as string]: 2 }}>
+          <div className="wrap grid grid--top">
+            <div className="span-6 stack-4">
+              <p className="t-label">Para dentistas e clínicas</p>
+              <h2 id="para-empresas-h">Uma Clara para a sua clínica</h2>
+              <p>A Sorriso Claro é fictícia; a Clara, não. Ela atende no site e no WhatsApp com os seus tratamentos, convênios e horários.</p>
+              <ul className="rows">
+                <li><span className="rows__name">Paciente atendido na hora</span><p>Quem escreve às 22h já sai com a avaliação marcada.</p></li>
+                <li><span className="rows__name">Só o que está no cadastro</span><p>Se não souber, ela passa para a recepção. Não inventa preço.</p></li>
+                <li><span className="rows__name">Painel para a recepção</span><p>Consultas marcadas e pedidos de atendimento num só lugar. <a className="link" href="/painel">Abrir o painel desta demo</a></p></li>
+              </ul>
+              <a className="link" href="https://alansouza.netlify.app" target="_blank" rel="noreferrer">Contratar uma assistente com o Alan</a>
+              <p className="t-small muted">Projeto de Alan Souza, desenvolvedor de IA em São Carlos.</p>
+            </div>
+            <figure className="develop span-6 start-7" data-moment="picture-develops"><img src="/img/escovas.jpg" alt="Escovas de dente de bambu num pote de vidro ao lado de folhas de eucalipto" width="1600" height="1200" loading="lazy" /></figure>
+          </div>
         </section>
       </main>
 
-      <section id="primeira-consulta" className="escuro">
-        <div className="escuro-dentro">
-          <p className="rotulo dourado">Primeira consulta</p>
-          <h2>Começa com uma conversa.</h2>
-          <ol className="passos">
-            <li><span>1</span><strong>Você agenda</strong><p>Pelo chat com a Clara, a qualquer hora, ou pela recepção em horário comercial.</p></li>
-            <li><span>2</span><strong>Avaliação</strong><p>O dentista examina, tira suas dúvidas e explica as opções, sem pressa.</p></li>
-            <li><span>3</span><strong>Plano de tratamento</strong><p>Você recebe as etapas, prazos e formas de pagamento por escrito antes de decidir.</p></li>
-          </ol>
-          <a className="btn claro" href="#atendimento" onClick={irParaChat}>Agendar minha avaliação</a>
+      <footer className="footer closing" id="contact" aria-labelledby="close-h">
+        <div className="wrap">
+          <div className="closing__cta close--photo">
+            <div className="section-head--split">
+              <div><h2 id="close-h">Avaliação inicial sem custo</h2><p className="t-lead">Segunda a sexta, 8h às 18h. Sábado, 8h às 12h.</p></div>
+              <a className="btn btn--primary" href="#agendar">Marcar consulta com a Clara</a>
+            </div>
+            <div className="close__media"><img src="/img/consultorio.jpg" alt="Consultório odontológico claro com cadeira e bancada" loading="lazy" /></div>
+          </div>
+          <div className="closing__links">
+            <div className="grid">
+              <div className="span-4 stack-4">
+                <a className="nav__logo" href="#top">Sorriso Claro</a>
+                <p className="footer__lede">Clínica odontológica fictícia, criada para demonstrar uma assistente de IA.</p>
+              </div>
+              <div className="span-2 footer__col"><h3>Clínica</h3><ul><li><a href="#tratamentos">Tratamentos</a></li><li><a href="#primeira-consulta">Consulta</a></li></ul></div>
+              <div className="span-2 footer__col"><h3>Visite</h3><ul><li><a href="#visite">Convênios</a></li></ul></div>
+              <div className="span-2 footer__col"><h3>Agenda</h3><ul><li><a href="#atendimento">Chat com a Clara</a></li><li><a href="/painel">Painel</a></li></ul></div>
+              <div className="span-2 footer__col"><h3>Empresas</h3><ul><li><a href="#para-empresas">Como funciona</a></li></ul></div>
+            </div>
+            <div className="footer__legal">
+              <span>&copy; 2026 Clínica Sorriso Claro, negócio fictício</span>
+              <div className="socials" />
+              <span className="credits">Fotos via Unsplash</span>
+            </div>
+          </div>
         </div>
-      </section>
-
-      <main>
-        <section id="convenios" className="bloco duas">
-          <div>
-            <p className="rotulo">Convênios e pagamento</p>
-            <h2>Cuidado com possibilidades.</h2>
-            <ul className="convenios">
-              {CLINICA.convenios.map((c) => <li key={c}>{c}</li>)}
-            </ul>
-            <p className="nota">{CLINICA.pagamento}</p>
-          </div>
-          <div>
-            <p className="rotulo">Equipe</p>
-            <h2>Quem cuida de você.</h2>
-            <ul className="equipe">
-              {CLINICA.equipe.map((e) => (
-                <li key={e.nome}><strong>{e.nome}</strong><span>{e.area}</span></li>
-              ))}
-            </ul>
-            <p className="nota">Profissionais fictícios desta demonstração.</p>
-          </div>
-        </section>
-
-        <section id="visite" className="bloco visite">
-          <img src="/img/recepcao.jpg" alt="Sala de espera clara com cadeiras pretas e uma oliveira" loading="lazy" />
-          <div>
-            <p className="rotulo">Como chegar</p>
-            <h2>Venha conhecer.</h2>
-            <p className="endereco">{CLINICA.endereco}</p>
-            <p className="nota">{CLINICA.estacionamento}</p>
-            <dl className="horas">
-              <div><dt>Segunda a sexta</dt><dd>8h às 18h</dd></div>
-              <div><dt>Sábado</dt><dd>8h às 12h</dd></div>
-              <div><dt>Domingo e feriados</dt><dd>Fechado</dd></div>
-            </dl>
-            <p className="nota"><strong>Urgência:</strong> {CLINICA.urgencia}</p>
-            <a className="btn" href="#atendimento" onClick={irParaChat}>Ver horários livres</a>
-          </div>
-        </section>
-      </main>
-
-      <section id="para-empresas" className="empresas">
-        <div className="empresas-dentro">
-          <p className="rotulo dourado">Para donos de clínicas, consultórios e comércios</p>
-          <h2>Esta clínica não existe.<br /><em>O atendimento, sim.</em></h2>
-          <p className="lead">
-            A Clara é uma assistente de IA feita sob medida. Ela atende no site e no WhatsApp, responde só com as informações do seu negócio e marca horários conferindo a agenda de verdade.
-          </p>
-          <ul className="empresas-lista">
-            <li><strong>Não inventa.</strong>Preço, convênio e horário vêm do seu cadastro. Se não souber, passa para a recepção em vez de chutar.</li>
-            <li><strong>Agenda conferida.</strong>O sistema valida cada horário antes de confirmar. Nada de consulta marcada em cima de outra.</li>
-            <li><strong>Sua equipe no controle.</strong>Consultas marcadas e pedidos de atendimento humano chegam num painel. <a href="/painel">Veja o painel desta demo</a>.</li>
-          </ul>
-          <a className="btn claro" href="https://alansouza.netlify.app" target="_blank" rel="noreferrer">Quero um atendimento assim</a>
-          <p className="assinatura">Projeto de Alan Souza, desenvolvedor de IA em São Carlos.</p>
-        </div>
-      </section>
-
-      <footer className="rodape">
-        Clínica Sorriso Claro é um negócio fictício criado para demonstração. Fotos: Unsplash.
       </footer>
 
-      <a className="flutuante" href="#atendimento" onClick={irParaChat}>Conversar com a Clara</a>
+      <nav className="actionbar" aria-label="Ações rápidas">
+        <a className="btn btn--primary" href="#agendar">Marcar consulta com a Clara</a>
+      </nav>
     </>
   )
 }
