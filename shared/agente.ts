@@ -3,8 +3,9 @@ import { CLINICA, horariosLivres, textoClinica } from './clinica.js'
 // Assistente virtual da clínica fictícia. A IA (Google Gemini) só interpreta e redige;
 // horários e agendamentos são consultados e validados aqui no servidor.
 
-type Msg = { role: 'user' | 'assistente'; texto: string }
-type Acao =
+export type Msg = { role: 'user' | 'assistente'; texto: string }
+export type Canal = 'site' | 'whatsapp'
+export type Acao =
   | { tipo: 'agendamento'; protocolo: string; servico: string; data: string; hora: string; nome: string }
   | { tipo: 'transferencia'; motivo: string; resumo: string }
 
@@ -19,20 +20,24 @@ const MAX_CHARS = 600
 
 // Limite simples por IP (por instância da função) para a demo pública não ser abusada.
 const uso = new Map<string, number[]>()
-function limitado(ip: string) {
+export function limitado(ip: string, max = 40) {
   const agora = Date.now()
   const janela = (uso.get(ip) || []).filter((t) => agora - t < 10 * 60_000)
   janela.push(agora)
   uso.set(ip, janela)
-  return janela.length > 40
+  return janela.length > max
 }
 
 function hojeSP() {
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date())
 }
 
-function instrucoes() {
-  return `Você é a Clara, assistente virtual da ${CLINICA.nome}. Atenda pacientes pelo chat do site, em português do Brasil, com simpatia e objetividade.
+function instrucoes(canal: Canal) {
+  const onde = canal === 'whatsapp' ? 'pelo WhatsApp da clínica' : 'pelo chat do site'
+  const formato = canal === 'whatsapp'
+    ? '- É WhatsApp: escreva como numa conversa de celular. Para destacar, use *um asterisco* (nunca dois). Sem links e sem títulos.'
+    : '- Pode usar **negrito** para destacar valores e horários. Não use títulos.'
+  return `Você é a Clara, assistente virtual da ${CLINICA.nome}. Atenda pacientes ${onde}, em português do Brasil, com simpatia e objetividade.
 
 Agora é ${hojeSP()} (horário de Brasília).
 
@@ -49,7 +54,7 @@ REGRAS:
 - Se a pessoa pedir atendente humano, reclamar, ou o assunto fugir do que você sabe, chame transferir_para_recepcao.
 - Se perguntarem se você é uma IA ou se a clínica é real: diga que é uma assistente de IA de demonstração e que a clínica é fictícia, criada por Alan Souza para mostrar como funciona um atendimento com IA.
 - Assuntos sem relação com a clínica: responda com educação que só pode ajudar com a clínica.
-- Pode usar **negrito** para destacar valores e horários. Não use títulos.`
+${formato}`
 }
 
 const FERRAMENTAS = [
@@ -127,30 +132,16 @@ function json(corpo: unknown, status = 200) {
   return new Response(JSON.stringify(corpo), { status, headers: { 'content-type': 'application/json; charset=utf-8' } })
 }
 
-export async function atender(req: Request): Promise<Response> {
-  if (req.method !== 'POST') return json({ erro: 'Use POST.' }, 405)
+// Núcleo da Clara, usado pelo chat do site e pelo WhatsApp.
+export async function responder(mensagens: Msg[], ocupados: string[], canal: Canal = 'site'): Promise<{ resposta: string; acoes: Acao[]; status?: number }> {
   const chave = process.env.GEMINI_API_KEY
-  if (!chave) return json({ resposta: 'A assistente está em manutenção no momento. Tente de novo mais tarde.', acoes: [] })
-
-  const ip = req.headers.get('x-real-ip') || req.headers.get('x-nf-client-connection-ip') || (req.headers.get('x-forwarded-for') || 'local').split(',')[0].trim()
-  if (limitado(ip)) return json({ resposta: 'Muitas mensagens em pouco tempo. Aguarde alguns minutos e tente de novo.', acoes: [] }, 429)
-
-  let corpo: { mensagens?: Msg[]; agendados?: string[] }
-  try {
-    corpo = await req.json()
-  } catch {
-    return json({ erro: 'JSON inválido.' }, 400)
-  }
-  const mensagens = (corpo.mensagens || []).slice(-MAX_MSGS).filter((m) => m && typeof m.texto === 'string' && (m.role === 'user' || m.role === 'assistente'))
-  if (!mensagens.length || mensagens[mensagens.length - 1].role !== 'user') return json({ erro: 'Envie a mensagem do usuário.' }, 400)
-  const ocupados = (corpo.agendados || []).filter((s) => typeof s === 'string').slice(0, 50)
-
+  if (!chave) return { resposta: 'A assistente está em manutenção no momento. Tente de novo mais tarde.', acoes: [] }
   const contents: any[] = mensagens.map((m) => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.texto.slice(0, MAX_CHARS) }] }))
   const acoes: Acao[] = []
 
   for (let passo = 0; passo < 5; passo++) {
     const corpoReq = JSON.stringify({
-      systemInstruction: { parts: [{ text: instrucoes() }] },
+      systemInstruction: { parts: [{ text: instrucoes(canal) }] },
       contents,
       tools: FERRAMENTAS,
       generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
@@ -188,14 +179,14 @@ export async function atender(req: Request): Promise<Response> {
     if (!r.ok) {
       console.log('ERRO_GEMINI status=' + r.status + ' corpo=' + (await r.text()).slice(0, 300).replace(/\s+/g, ' '))
       const msg = r.status === 429 ? 'A demonstração atingiu o limite de uso por agora. Tente de novo em alguns minutos.' : 'Tive um problema para responder agora. Pode tentar de novo?'
-      return json({ resposta: msg, acoes })
+      return { resposta: msg, acoes, status: r.status }
     }
     const dados: any = await r.json()
     const partes: any[] = dados?.candidates?.[0]?.content?.parts || []
     const chamadas = partes.filter((p) => p.functionCall)
     if (!chamadas.length) {
       const texto = partes.map((p) => p.text || '').join('').trim()
-      return json({ resposta: texto || 'Desculpe, não entendi. Pode reformular?', acoes })
+      return { resposta: texto || 'Desculpe, não entendi. Pode reformular?', acoes }
     }
     contents.push({ role: 'model', parts: partes })
     contents.push({
@@ -205,6 +196,23 @@ export async function atender(req: Request): Promise<Response> {
       })),
     })
   }
-  return json({ resposta: 'Desculpe, me enrolei aqui. Pode repetir o que precisa?', acoes })
+  return { resposta: 'Desculpe, me enrolei aqui. Pode repetir o que precisa?', acoes }
 }
 
+export async function atender(req: Request): Promise<Response> {
+  if (req.method !== 'POST') return json({ erro: 'Use POST.' }, 405)
+  const ip = req.headers.get('x-real-ip') || req.headers.get('x-nf-client-connection-ip') || (req.headers.get('x-forwarded-for') || 'local').split(',')[0].trim()
+  if (limitado(ip)) return json({ resposta: 'Muitas mensagens em pouco tempo. Aguarde alguns minutos e tente de novo.', acoes: [] }, 429)
+
+  let corpo: { mensagens?: Msg[]; agendados?: string[] }
+  try {
+    corpo = await req.json()
+  } catch {
+    return json({ erro: 'JSON inválido.' }, 400)
+  }
+  const mensagens = (corpo.mensagens || []).slice(-MAX_MSGS).filter((m) => m && typeof m.texto === 'string' && (m.role === 'user' || m.role === 'assistente'))
+  if (!mensagens.length || mensagens[mensagens.length - 1].role !== 'user') return json({ erro: 'Envie a mensagem do usuário.' }, 400)
+  const ocupados = (corpo.agendados || []).filter((s) => typeof s === 'string').slice(0, 50)
+  const { resposta, acoes } = await responder(mensagens, ocupados, 'site')
+  return json({ resposta, acoes })
+}
