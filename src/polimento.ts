@@ -2,8 +2,6 @@
 // (fixa no topo, marca a seção atual e mostra o progresso da leitura).
 // Sem script ou com "reduzir movimento", a página fica inteira e parada.
 
-const NAV_SECOES = ['tratamentos', 'primeira-consulta', 'visite', 'para-empresas']
-
 export function iniciarPolimento(): () => void {
   const html = document.documentElement
   const reduz = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -24,7 +22,7 @@ export function iniciarPolimento(): () => void {
       s.querySelectorAll('.rows > li').forEach((el, j) => marcar(el, 'rv', i + j))
       s.querySelectorAll('.card').forEach((el, j) => marcar(el, 'rv', j * 1.5))
       s.querySelectorAll('.section-head--split > .btn').forEach((el) => marcar(el, 'rv', 2))
-      s.querySelectorAll('.frame--photo, .chat-frame, .close__media, .previa').forEach((el) => marcar(el, 'rv-media', 1))
+      s.querySelectorAll('.frame--photo, .chat-frame, .close__media, .previa, .pl-photo').forEach((el) => marcar(el, 'rv-media', 1))
     }
     const io = new IntersectionObserver(
       (entradas) => {
@@ -68,7 +66,7 @@ export function iniciarPolimento(): () => void {
   const links: [HTMLElement, HTMLAnchorElement][] = []
   document.querySelectorAll<HTMLAnchorElement>('.nav__links .nav__link').forEach((a) => {
     const id = a.getAttribute('href')?.slice(1)
-    const s = id && NAV_SECOES.includes(id) ? document.getElementById(id) : null
+    const s = id ? document.querySelector<HTMLElement>(`main > section[id="${id}"]`) : null
     if (s) links.push([s, a])
   })
   let atual: HTMLAnchorElement | null = null
