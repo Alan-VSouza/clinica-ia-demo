@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import Chat from './Chat'
+import { iniciarPolimento } from './polimento'
 import { CLINICA, horariosLivres } from '../shared/clinica'
 
 const KIT = ['/assets/system.js', '/assets/motion/motion.js', '/assets/layout/layout.js']
@@ -36,6 +37,7 @@ const TRATAMENTOS: [string, string][] = [
 
 export default function App() {
   usarKit()
+  useEffect(() => iniciarPolimento(), [])
   const proximo = useMemo(proximoHorario, [])
 
   return (
