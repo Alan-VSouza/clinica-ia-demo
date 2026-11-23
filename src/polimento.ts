@@ -24,7 +24,7 @@ export function iniciarPolimento(): () => void {
       s.querySelectorAll('.rows > li').forEach((el, j) => marcar(el, 'rv', i + j))
       s.querySelectorAll('.card').forEach((el, j) => marcar(el, 'rv', j * 1.5))
       s.querySelectorAll('.section-head--split > .btn').forEach((el) => marcar(el, 'rv', 2))
-      s.querySelectorAll('.frame--photo, .chat-frame, .close__media').forEach((el) => marcar(el, 'rv-media', 1))
+      s.querySelectorAll('.frame--photo, .chat-frame, .close__media, .previa').forEach((el) => marcar(el, 'rv-media', 1))
     }
     const io = new IntersectionObserver(
       (entradas) => {

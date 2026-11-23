@@ -129,3 +129,37 @@ html.pl-js .chat-frame.rv-media.is-in { transform: none; }
   main > section > .wrap > .grid.fill { flex: 1 0 auto; min-height: auto; }
   #visite .frame--photo { aspect-ratio: 4 / 3 !important; }
 }
+
+/* ---------- prévia do painel da recepção (seção para empresas) ---------- */
+.previa { align-self: start; border-radius: var(--r-lg, 20px); overflow: hidden; background: #fff;
+  border: 1px solid color-mix(in oklab, var(--p-ink) 12%, transparent);
+  box-shadow: 0 24px 60px -32px color-mix(in oklab, var(--p-ink) 35%, transparent); }
+.previa__barra { display: flex; align-items: center; gap: 12px; padding: 12px 16px; font-size: 14px; color: var(--p-muted);
+  border-bottom: 1px solid color-mix(in oklab, var(--p-ink) 10%, transparent); background: var(--p-bg); }
+.previa__pontos { display: inline-flex; gap: 6px; } .previa__pontos i { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in oklab, var(--p-ink) 16%, transparent); }
+.previa__corpo { padding: 24px; display: grid; gap: 16px; }
+.previa__resumo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.previa__resumo div { background: var(--p-inv-bg); color: var(--p-inv-ink); border-radius: 12px; padding: 16px 18px; }
+.previa__resumo strong { display: block; font: 400 40px/1.05 var(--font-display); }
+.previa__resumo span { font-size: 14px; color: var(--p-inv-muted); }
+.previa__titulo { margin: 8px 0 0; font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--p-muted); }
+.previa__lista { list-style: none; margin: 0; padding: 0; }
+.previa__lista li { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: baseline; padding: 12px 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--p-ink) 9%, transparent); font-size: 15px; }
+.previa__hora { color: var(--p-muted); font-variant-numeric: tabular-nums; font-size: 14px; }
+.previa__nome { font-weight: 500; } .previa__nome small { display: block; font-weight: 400; color: var(--p-muted); font-size: 14px; }
+.previa__dia { font-weight: 500; color: var(--p-accent); background: var(--p-surface); padding: 4px 10px; border-radius: 999px; font-size: 14px; white-space: nowrap; }
+.previa__pedido { display: grid; gap: 4px; padding: 14px 16px; border-radius: 12px; font-size: 15px;
+  background: color-mix(in oklab, #c9822b 12%, #fff); border: 1px solid color-mix(in oklab, #c9822b 30%, transparent); }
+.previa__pedido span { color: var(--p-muted); font-size: 14px; }
+@media (max-width: 1023px) { .previa { margin-top: var(--s-7); } }
+@media (max-width: 420px) { .previa__corpo { padding: 16px; } .previa__resumo strong { font-size: 32px; } .previa__lista li { grid-template-columns: 48px 1fr auto; gap: 8px; } }
+
+/* celular e tablet: a seção tem a altura do que ela mostra, sem tela vazia entre uma e outra */
+@media (max-width: 1023px) {
+  main > section:not(.hero), footer.closing { min-height: 0 !important; }
+  /* sem altura fixa, o bloco que "enche a tela" passa a ter a altura do próprio conteúdo */
+  main > section > .wrap > .fill, main > section > .wrap > .grid.fill { flex: 0 0 auto !important; height: auto !important; min-height: 0; }
+  .grid.fill > .frame--fill { flex: none !important; height: auto !important; aspect-ratio: 4 / 3; }
+  .grid.fill > .chat-frame { flex: none; }
+}

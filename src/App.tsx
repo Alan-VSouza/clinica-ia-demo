@@ -35,6 +35,35 @@ const TRATAMENTOS: [string, string][] = [
   ['Implante dentário', 'Planejado com exame de imagem'],
 ]
 
+
+const PREVIA: [string, string, string, string][] = [
+  ['22:41', 'Ana P.', 'Avaliação, Amil Dental', 'Seg 9h'],
+  ['23:15', 'Rafael M.', 'Limpeza, particular', 'Seg 14h'],
+  ['06:52', 'Júlia S.', 'Clareamento, particular', 'Ter 10h'],
+]
+
+function PainelPrevia() {
+  return (
+    <div className="previa span-6 start-7" aria-label="Exemplo do painel da recepção">
+      <div className="previa__barra"><span className="previa__pontos" aria-hidden="true"><i /><i /><i /></span><span>Painel da recepção, exemplo</span></div>
+      <div className="previa__corpo">
+        <div className="previa__resumo">
+          <div><strong>3</strong><span>consultas marcadas fora do horário</span></div>
+          <div><strong>1</strong><span>conversa para a recepção</span></div>
+        </div>
+        <p className="previa__titulo">Marcadas pela Clara esta noite</p>
+        <ul className="previa__lista">
+          {PREVIA.map(([quando, nome, servico, dia]) => (
+            <li key={nome}><span className="previa__hora">{quando}</span><span className="previa__nome">{nome}<small>{servico}</small></span><span className="previa__dia">{dia}</span></li>
+          ))}
+        </ul>
+        <p className="previa__titulo">Para a recepção responder</p>
+        <div className="previa__pedido"><strong>Dor forte desde ontem</strong><span>Pediu encaixe hoje. A Clara não deu diagnóstico e avisou a recepção.</span></div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   usarKit()
   useEffect(() => iniciarPolimento(), [])
@@ -181,9 +210,7 @@ export default function App() {
                 <p>Convênios: {CLINICA.convenios.join(', ')}.</p>
                 <p>{CLINICA.estacionamento}</p>
               </div>
-              <div className="frame frame--photo span-6 start-7" style={{ aspectRatio: '1 / 1' }}>
-                <img className="frame__img" src="/img/recepcao.jpg" alt="Sala de espera clara com cadeiras pretas e uma oliveira" loading="lazy" />
-              </div>
+              <figure className="develop span-6 start-7" data-moment="picture-develops"><img src="/img/recepcao.jpg" alt="Sala de espera clara com cadeiras pretas e uma oliveira" width="1600" height="1872" loading="lazy" /></figure>
             </div>
           </div>
         </section>
@@ -199,10 +226,12 @@ export default function App() {
                 <li><span className="rows__name">Só o que está no cadastro</span><p>Se não souber, ela passa para a recepção. Não inventa preço.</p></li>
                 <li><span className="rows__name">Painel para a recepção</span><p>Consultas marcadas e pedidos de atendimento num só lugar. <a className="link" href="/painel">Abrir o painel desta demo</a></p></li>
               </ul>
-              <a className="link" href="https://alansouza.netlify.app" target="_blank" rel="noreferrer">Contratar uma assistente com o Alan</a>
+              <div className="btn-row">
+                <a className="btn btn--primary" href="https://alansouza.netlify.app" target="_blank" rel="noreferrer">Quero uma Clara na minha clínica</a>
+              </div>
               <p className="t-small muted">Projeto de Alan Souza, desenvolvedor de IA em São Carlos.</p>
             </div>
-            <figure className="develop span-6 start-7" data-moment="picture-develops"><img src="/img/escovas.jpg" alt="Escovas de dente de bambu num pote de vidro ao lado de folhas de eucalipto" width="1600" height="1200" loading="lazy" /></figure>
+            <PainelPrevia />
           </div>
         </section>
       </main>
