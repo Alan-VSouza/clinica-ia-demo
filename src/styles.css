@@ -115,9 +115,17 @@ html.pl-js .rv-media.is-in img { scale: 1; }
 html.pl-js .chat-frame.rv-media { transform: translateY(24px); transition: clip-path 1000ms cubic-bezier(.22,1,.36,1), opacity 500ms ease, transform 900ms cubic-bezier(.22,1,.36,1); }
 html.pl-js .chat-frame.rv-media.is-in { transform: none; }
 
-/* profundidade: a foto anda até 5% dentro da moldura (o fundo fica um pouco maior para não aparecer borda) */
+/* profundidade: a foto, 10% maior que a moldura, anda até 4% dentro dela (scale e translate, sem mexer no tamanho da caixa) */
 @media (prefers-reduced-motion: no-preference) {
-  .hero__media img, .frame--photo .frame__img, .close__media img { translate: 0 var(--pl-y, 0); }
   .hero__media, .frame--photo, .close__media { overflow: hidden; }
-  .hero__media img, .frame--photo .frame__img, .close__media img { height: 112% !important; margin-top: -6%; }
+  .hero__media img, .frame--photo .frame__img, .close__media img { scale: 1.1; translate: 0 var(--pl-y, 0); }
+  html.pl-js .rv-media img { scale: 1.22; }
+  html.pl-js .rv-media.is-in img { scale: 1.1; }
+}
+
+/* tablet (640 a 1023): as colunas empilham, então o bloco cresce com o conteúdo em vez de caber à força
+   em uma tela (antes a foto dos convênios invadia a seção seguinte) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  main > section > .wrap > .grid.fill { flex: 1 0 auto; min-height: auto; }
+  #visite .frame--photo { aspect-ratio: 4 / 3 !important; }
 }

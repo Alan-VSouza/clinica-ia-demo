@@ -101,7 +101,7 @@ export function iniciarPolimento(): () => void {
       const r = img.parentElement!.getBoundingClientRect()
       if (r.bottom < -100 || r.top > vh + 100) continue
       const p = (r.top + r.height / 2 - vh / 2) / (vh / 2 + r.height / 2) // -1 em cima, 1 embaixo
-      img.style.setProperty('--pl-y', `${(p * 5).toFixed(2)}%`)
+      img.style.setProperty('--pl-y', `${(p * 4).toFixed(2)}%`)
     }
   }
   const rolar = () => { if (!pedido) pedido = requestAnimationFrame(quadro) }
