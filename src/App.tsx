@@ -229,7 +229,7 @@ export default function App() {
               <div className="btn-row">
                 <a className="btn btn--primary" href="https://wa.me/5519994450160?text=Oi%2C%20Alan%21%20Vi%20a%20demonstra%C3%A7%C3%A3o%20da%20Clara%20e%20quero%20uma%20assistente%20assim%20para%20a%20minha%20cl%C3%ADnica." target="_blank" rel="noreferrer">Quero uma Clara na minha clínica</a>
               </div>
-              <p className="t-small muted">Fala direto com o Alan Souza, desenvolvedor de IA em São Carlos, pelo WhatsApp. <a className="link" href="https://alansouza.netlify.app" target="_blank" rel="noreferrer">Ver o portfólio</a></p>
+              <p className="t-small">Fala direto com o Alan Souza, desenvolvedor de IA em São Carlos, pelo WhatsApp. <a className="link" href="https://alansouza.netlify.app" target="_blank" rel="noreferrer">Ver o portfólio</a></p>
             </div>
             <PainelPrevia />
           </div>
