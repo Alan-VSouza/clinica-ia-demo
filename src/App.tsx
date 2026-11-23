@@ -44,7 +44,7 @@ const PREVIA: [string, string, string, string][] = [
 
 function PainelPrevia() {
   return (
-    <div className="previa span-6 start-7" aria-label="Exemplo do painel da recepção">
+    <div className="previa span-6 start-7" data-visual aria-label="Exemplo do painel da recepção">
       <div className="previa__barra"><span className="previa__pontos" aria-hidden="true"><i /><i /><i /></span><span>Painel da recepção, exemplo</span></div>
       <div className="previa__corpo">
         <div className="previa__resumo">

@@ -151,7 +151,7 @@ html.pl-js .chat-frame.rv-media.is-in { transform: none; }
 .previa__dia { font-weight: 500; color: var(--p-accent); background: var(--p-surface); padding: 4px 10px; border-radius: 999px; font-size: 14px; white-space: nowrap; }
 .previa__pedido { display: grid; gap: 4px; padding: 14px 16px; border-radius: 12px; font-size: 15px;
   background: color-mix(in oklab, #c9822b 12%, #fff); border: 1px solid color-mix(in oklab, #c9822b 30%, transparent); }
-.previa__pedido span { color: var(--p-muted); font-size: 14px; }
+.previa__pedido span { color: color-mix(in oklab, var(--p-ink) 78%, #fff); font-size: 14px; }
 @media (max-width: 1023px) { .previa { margin-top: var(--s-7); } }
 @media (max-width: 420px) { .previa__corpo { padding: 16px; } .previa__resumo strong { font-size: 32px; } .previa__lista li { grid-template-columns: 48px 1fr auto; gap: 8px; } }
 
