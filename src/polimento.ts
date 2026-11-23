@@ -1,5 +1,5 @@
 // Movimento da página: entradas na rolagem, fotos com profundidade e a barra de navegação
-// (some ao descer, volta ao subir, marca a seção atual e mostra o progresso da leitura).
+// (fixa no topo, marca a seção atual e mostra o progresso da leitura).
 // Sem script ou com "reduzir movimento", a página fica inteira e parada.
 
 const NAV_SECOES = ['tratamentos', 'primeira-consulta', 'visite', 'para-empresas']
@@ -86,7 +86,6 @@ export function iniciarPolimento(): () => void {
   // fotos com profundidade: a imagem anda um pouco mais devagar que a moldura
   const fotos = reduz ? [] : [...document.querySelectorAll<HTMLImageElement>('.hero__media img, .frame--photo .frame__img, .close__media img')]
 
-  let ultimoY = window.scrollY
   let pedido = 0
   const quadro = () => {
     pedido = 0
@@ -95,13 +94,7 @@ export function iniciarPolimento(): () => void {
     barra?.style.setProperty('--pl-p', String(alto > 0 ? Math.min(1, y / alto) : 0))
     if (nav) {
       nav.classList.toggle('is-scrolled', y > 8)
-      const menuAberto = nav.classList.contains('is-open') || nav.matches(':focus-within')
-      const descendo = y > ultimoY + 4
-      const subindo = y < ultimoY - 4
-      if (!reduz && descendo && y > 480 && !menuAberto) nav.classList.add('is-hidden')
-      else if (subindo || y <= 480 || menuAberto) nav.classList.remove('is-hidden')
     }
-    ultimoY = y
     const vh = window.innerHeight
     marcarAtual(vh)
     for (const img of fotos) {

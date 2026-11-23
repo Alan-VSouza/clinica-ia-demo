@@ -89,10 +89,9 @@
 }
 html { scroll-padding-top: calc(var(--nav) + 16px); }
 
-/* barra de navegação: sombra leve ao rolar, some ao descer, volta ao subir */
+/* barra de navegação fixa: sombra leve ao rolar */
 .nav { transition: transform 320ms cubic-bezier(.22,1,.36,1), box-shadow 200ms ease, background-color 200ms ease; }
 .nav.is-scrolled { box-shadow: 0 1px 0 var(--line), 0 8px 24px -16px color-mix(in oklab, var(--p-ink) 30%, transparent); }
-.nav.is-hidden { transform: translateY(calc(-100% - 2px)); }
 .nav__progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--p-accent);
   transform-origin: left; transform: scaleX(var(--pl-p, 0)); pointer-events: none; }
 /* a seção em que o leitor está: a mesma barra de 2px do kit sob a palavra, crescendo da esquerda */
