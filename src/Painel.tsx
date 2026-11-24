@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { formatarData, lerAgendamentos, lerTransferencias, limparTudo, type Agendamento, type Transferencia } from './store'
-import { emIngles, locale, tr } from './idioma'
+import { emIngles, locale, nomeServico, tr } from './idioma'
 
 export default function Painel() {
   const [ag, setAg] = useState<Agendamento[]>([])
@@ -47,7 +47,7 @@ export default function Painel() {
               <thead><tr><th>{tr('Dia', 'Day')}</th><th>{tr('Hora', 'Time')}</th><th>{tr('Paciente', 'Patient')}</th><th>{tr('Serviço', 'Service')}</th><th>{tr('Protocolo', 'Reference')}</th></tr></thead>
               <tbody>
                 {ag.map((a) => (
-                  <tr key={a.protocolo}><td>{formatarData(a.data)}</td><td>{a.hora}</td><td>{a.nome}</td><td>{a.servico}</td><td><code>{a.protocolo}</code></td></tr>
+                  <tr key={a.protocolo}><td>{formatarData(a.data)}</td><td>{a.hora}</td><td>{a.nome}</td><td>{nomeServico(a.servico)}</td><td><code>{a.protocolo}</code></td></tr>
                 ))}
               </tbody>
             </table>

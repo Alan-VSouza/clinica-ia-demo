@@ -23,6 +23,18 @@ export const locale = emIngles ? 'en-US' : 'pt-BR'
 /** O texto em português e, ao lado, o mesmo em inglês. */
 export const tr = (pt: string, en: string) => (emIngles ? en : pt)
 
+// Nomes dos serviços em inglês (os dados da clínica estão em português).
+const SERVICOS_EN: Record<string, string> = {
+  'Avaliação inicial': 'Initial check-up',
+  'Limpeza (profilaxia)': 'Cleaning',
+  'Clareamento dental': 'Teeth whitening',
+  'Restauração em resina': 'Composite filling',
+  'Tratamento de canal': 'Root canal',
+  'Aparelho ortodôntico': 'Orthodontic braces',
+  'Implante dentário': 'Dental implant',
+}
+export const nomeServico = (pt: string) => (emIngles ? SERVICOS_EN[pt] || pt : pt)
+
 /** Endereço da mesma página no outro idioma (mantém a âncora). */
 export function linkOutroIdioma() {
   const u = new URL(window.location.href)

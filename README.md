@@ -1,50 +1,60 @@
-# Clara · assistente de IA para clínicas (demo)
+# Clara · AI receptionist for clinics (demo)
 
-Site de uma clínica odontológica **fictícia** com uma assistente de IA que tira dúvidas sobre preços e convênios, consulta a agenda e marca consultas sozinha.
+**English** · [Português](README.pt-BR.md)
 
-**Teste ao vivo:** https://clinica-ia-demo-alan.vercel.app
+Clara is an AI assistant for a **fictional** dental clinic in Brazil. She answers questions about prices and dental plans, checks the schedule and books appointments on her own, on the website and on WhatsApp.
 
-![Site com a conversa de agendamento](docs/home.jpg)
+**Live demo:** https://clinica-ia-demo-alan.vercel.app/?lang=en (the site has an EN / PT switch, and Clara replies in the visitor's language)
 
-## O que ela faz
+![The clinic website in English](docs/home.jpg)
 
-- Responde sobre tratamentos, valores, convênios, horários e endereço usando **apenas** os dados cadastrados da clínica. Se não souber, oferece passar para a recepção em vez de inventar.
-- Consulta horários livres e agenda a consulta. O horário é **validado no servidor** antes de confirmar, então a IA não consegue marcar em cima de outra consulta.
-- Encaminha para um atendente humano quando o paciente pede, reclama ou o assunto foge do roteiro.
-- Mostra consultas marcadas e transferências num **painel da recepção** (`/painel`).
+## What she does
 
-## Como funciona
+- Answers about treatments, prices, dental plans, hours and address using **only** the clinic's own data. When she does not know, she offers to hand over to the front desk instead of making something up.
+- Checks free slots and books the appointment. Every slot is **validated on the server** before it is confirmed, so the AI cannot double-book.
+- Hands the chat to a person when the patient asks for one, complains, or goes off script. She never gives a diagnosis; urgent pain gets the nearest free slot.
+- Shows bookings and handovers in a **front-desk dashboard** (`/painel`).
+- Runs on **WhatsApp** through Meta's official Cloud API, with the same rules and schedule as the website.
+
+![A real booking conversation](docs/conversation.jpg)
+
+## How it works
 
 ```
-Navegador (React)  →  /api/chat (função serverless)  →  Google Gemini
-                           │
-                           ├─ ver_horarios        (agenda gerada e filtrada no servidor)
-                           ├─ agendar_consulta    (valida o horário, gera protocolo)
-                           └─ transferir_para_recepcao
+Website (React)          →  /api/chat      ─┐
+WhatsApp (Meta Cloud API) →  /api/whatsapp  ─┴→  shared agent  →  Google Gemini
+                                                    │
+                                                    ├─ ver_horarios              (free slots, filtered on the server)
+                                                    ├─ agendar_consulta          (validates the slot, issues a reference)
+                                                    └─ transferir_para_recepcao  (hands over to a person)
 ```
 
-A IA só interpreta a mensagem e redige a resposta. As regras de negócio (horários, preços, validação do agendamento) ficam no código, via *function calling*.
+The model only reads the message and writes the reply. Business rules (hours, prices, booking validation) live in the code and are reached through **function calling**.
 
-- **Front-end:** React 18 + TypeScript + Vite, CSS próprio, responsivo.
-- **Back-end:** função serverless em TypeScript (Vercel; também roda no Netlify), com limite de mensagens por IP.
-- **IA:** Google Gemini com function calling e lista de modelos de reserva.
-- **Dados da clínica:** `shared/clinica.ts` (trocar esse arquivo adapta a demo para outro negócio).
+- **Front end:** React 18, TypeScript and Vite, hand-written CSS, responsive, bilingual (`src/idioma.ts`).
+- **Back end:** TypeScript serverless functions on Vercel, with per-IP and per-number rate limits.
+- **AI:** Google Gemini with function calling and a fallback list of models.
+- **WhatsApp:** webhook in `shared/whatsapp.ts`.
+  - Checks Meta's `X-Hub-Signature-256` signature and answers each message once, even when Meta resends it.
+  - Keeps a short chat history per number (optionally in Upstash Redis) and alerts the front desk of each booking or handover.
+  - Setup guide (in Portuguese): [WHATSAPP.md](WHATSAPP.md).
+- **Clinic data:** `shared/clinica.ts`. Replacing this file adapts the demo to another business.
 
-| Celular | Painel da recepção |
+| Phone | Front-desk dashboard |
 | --- | --- |
-| ![Versão celular](docs/celular.jpg) | ![Painel](docs/painel.jpg) |
+| ![Phone version](docs/mobile.jpg) | ![Dashboard](docs/dashboard.jpg) |
 
-## Rodar localmente
+## Run locally
 
 ```bash
 npm install
 npx vercel dev
 ```
 
-Defina `GEMINI_API_KEY` (e opcionalmente `GEMINI_MODEL`) num arquivo `.env` para usar sua própria chave do Google AI Studio.
+Set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) in a `.env` file to use your own Google AI Studio key. The WhatsApp variables are listed at the top of `shared/whatsapp.ts`.
 
 ---
 
-Feito por **Alan Souza**, desenvolvedor full-stack e de IA em São Carlos-SP · [alansouza.netlify.app](https://alansouza.netlify.app)
+Built by **Alan Souza**, full-stack and AI developer in Brazil · [alansouza.netlify.app](https://alansouza.netlify.app) · [LinkedIn](https://linkedin.com/in/alanvasconi)
 
-A Clínica Sorriso Claro não existe. Fotos: Unsplash.
+Sorriso Claro does not exist. Photos: Unsplash.

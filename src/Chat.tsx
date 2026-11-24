@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { formatarData, lerAgendamentos, salvarAgendamento, salvarTransferencia } from './store'
-import { emIngles, idioma, tr } from './idioma'
+import { emIngles, idioma, nomeServico, tr } from './idioma'
 
 type Msg = { role: 'user' | 'assistente'; texto: string; aviso?: string }
 
@@ -75,7 +75,7 @@ export default function Chat() {
         if (a.tipo === 'agendamento') {
           salvarAgendamento({ ...a, criadoEm })
           aviso = emIngles
-            ? `Appointment saved: ${a.servico}, ${formatarData(a.data)} at ${a.hora} · reference ${a.protocolo}`
+            ? `Appointment saved: ${nomeServico(a.servico)}, ${formatarData(a.data)} at ${a.hora} · reference ${a.protocolo}`
             : `Consulta registrada: ${a.servico}, ${formatarData(a.data)} às ${a.hora} · protocolo ${a.protocolo}`
         }
         if (a.tipo === 'transferencia') {
