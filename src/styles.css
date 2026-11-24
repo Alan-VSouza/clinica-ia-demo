@@ -168,3 +168,17 @@ html.pl-js .chat-frame.rv-media.is-in { transform: none; }
 html.pl-rodape .actionbar { opacity: 0 !important; visibility: hidden; pointer-events: none; transition: opacity 200ms ease, visibility 0s linear 200ms; }
 /* a prévia do painel é uma janela: o miolo tem fundo próprio, como a tela de um app */
 .previa__corpo { background: #fff; }
+
+/* ---------- troca de idioma (PT | EN) ---------- */
+.nav__lang {
+  display: inline-grid; place-items: center; min-width: 44px; height: 44px; padding: 0 var(--s-2); flex: none;
+  border: 1px solid var(--line-strong); border-radius: var(--r-btn); color: var(--ink);
+  font-size: 14px; font-weight: 600; letter-spacing: .04em; text-decoration: none;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.nav__lang:hover { background: var(--surface, rgba(0,0,0,.04)); border-color: var(--ink); }
+.nav__lang:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+@media (max-width: 1023px) {
+  .nav__lang { margin-left: auto; }
+  .nav__lang + .nav__toggle { margin-left: var(--s-2); }
+}

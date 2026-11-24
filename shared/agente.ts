@@ -5,6 +5,7 @@ import { CLINICA, horariosLivres, textoClinica } from './clinica.js'
 
 export type Msg = { role: 'user' | 'assistente'; texto: string }
 export type Canal = 'site' | 'whatsapp'
+export type Idioma = 'pt' | 'en'
 export type Acao =
   | { tipo: 'agendamento'; protocolo: string; servico: string; data: string; hora: string; nome: string }
   | { tipo: 'transferencia'; motivo: string; resumo: string }
@@ -32,7 +33,7 @@ function hojeSP() {
   return new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date())
 }
 
-function instrucoes(canal: Canal) {
+function instrucoes(canal: Canal, idioma: Idioma = 'pt') {
   const onde = canal === 'whatsapp' ? 'pelo WhatsApp da clínica' : 'pelo chat do site'
   const formato = canal === 'whatsapp'
     ? '- É WhatsApp: escreva como numa conversa de celular. Para destacar, use *um asterisco* (nunca dois). Sem links e sem títulos.'
@@ -45,6 +46,7 @@ INFORMAÇÕES DA CLÍNICA (a única fonte que você pode usar):
 ${textoClinica()}
 
 REGRAS:
+- Responda sempre no idioma em que o paciente escreveu por último (português, inglês, espanhol...).${idioma === 'en' ? ' O visitante está na versão em inglês do site: se a mensagem for ambígua, use inglês. Traduza nomes de serviços e regras para o inglês e mantenha os preços em reais (R$).' : ''}
 - Responda de forma curta: no máximo 3 frases, ou uma lista curta. Sem textos longos.
 - Use SOMENTE as informações acima. Se não souber, diga que vai confirmar com a recepção e ofereça transferir. Nunca invente preço, convênio, profissional, prazo ou horário.
 - Para falar de horários disponíveis, SEMPRE chame a ferramenta ver_horarios. Ofereça no máximo 4 opções.
@@ -133,7 +135,7 @@ function json(corpo: unknown, status = 200) {
 }
 
 // Núcleo da Clara, usado pelo chat do site e pelo WhatsApp.
-export async function responder(mensagens: Msg[], ocupados: string[], canal: Canal = 'site'): Promise<{ resposta: string; acoes: Acao[]; status?: number }> {
+export async function responder(mensagens: Msg[], ocupados: string[], canal: Canal = 'site', idioma: Idioma = 'pt'): Promise<{ resposta: string; acoes: Acao[]; status?: number }> {
   const chave = process.env.GEMINI_API_KEY
   if (!chave) return { resposta: 'A assistente está em manutenção no momento. Tente de novo mais tarde.', acoes: [] }
   const contents: any[] = mensagens.map((m) => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.texto.slice(0, MAX_CHARS) }] }))
@@ -141,7 +143,7 @@ export async function responder(mensagens: Msg[], ocupados: string[], canal: Can
 
   for (let passo = 0; passo < 5; passo++) {
     const corpoReq = JSON.stringify({
-      systemInstruction: { parts: [{ text: instrucoes(canal) }] },
+      systemInstruction: { parts: [{ text: instrucoes(canal, idioma) }] },
       contents,
       tools: FERRAMENTAS,
       generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
@@ -204,7 +206,7 @@ export async function atender(req: Request): Promise<Response> {
   const ip = req.headers.get('x-real-ip') || req.headers.get('x-nf-client-connection-ip') || (req.headers.get('x-forwarded-for') || 'local').split(',')[0].trim()
   if (limitado(ip)) return json({ resposta: 'Muitas mensagens em pouco tempo. Aguarde alguns minutos e tente de novo.', acoes: [] }, 429)
 
-  let corpo: { mensagens?: Msg[]; agendados?: string[] }
+  let corpo: { mensagens?: Msg[]; agendados?: string[]; idioma?: string }
   try {
     corpo = await req.json()
   } catch {
@@ -213,6 +215,6 @@ export async function atender(req: Request): Promise<Response> {
   const mensagens = (corpo.mensagens || []).slice(-MAX_MSGS).filter((m) => m && typeof m.texto === 'string' && (m.role === 'user' || m.role === 'assistente'))
   if (!mensagens.length || mensagens[mensagens.length - 1].role !== 'user') return json({ erro: 'Envie a mensagem do usuário.' }, 400)
   const ocupados = (corpo.agendados || []).filter((s) => typeof s === 'string').slice(0, 50)
-  const { resposta, acoes } = await responder(mensagens, ocupados, 'site')
+  const { resposta, acoes } = await responder(mensagens, ocupados, 'site', corpo.idioma === 'en' ? 'en' : 'pt')
   return json({ resposta, acoes })
 }

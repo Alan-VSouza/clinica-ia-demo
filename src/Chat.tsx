@@ -1,13 +1,19 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { formatarData, lerAgendamentos, salvarAgendamento, salvarTransferencia } from './store'
+import { emIngles, idioma, tr } from './idioma'
 
 type Msg = { role: 'user' | 'assistente'; texto: string; aviso?: string }
 
-const SUGESTOES = ['Quanto custa uma limpeza?', 'Vocês aceitam convênio?', 'Quero agendar uma avaliação', 'Estou com dor de dente', 'Falar com atendente']
+const SUGESTOES = emIngles
+  ? ['How much is a cleaning?', 'Do you take dental insurance?', 'I want to book a check-up', 'I have a toothache', 'Talk to a person']
+  : ['Quanto custa uma limpeza?', 'Vocês aceitam convênio?', 'Quero agendar uma avaliação', 'Estou com dor de dente', 'Falar com atendente']
 
 const BOAS_VINDAS: Msg = {
   role: 'assistente',
-  texto: 'Oi, eu sou a **Clara**, assistente virtual da Clínica Sorriso Claro. Posso tirar dúvidas sobre tratamentos, preços e convênios, ou marcar sua consulta. Como posso ajudar?',
+  texto: tr(
+    'Oi, eu sou a **Clara**, assistente virtual da Clínica Sorriso Claro. Posso tirar dúvidas sobre tratamentos, preços e convênios, ou marcar sua consulta. Como posso ajudar?',
+    "Hi, I'm **Clara**, the virtual assistant at Sorriso Claro dental clinic in Brazil. I can answer questions about treatments, prices and dental plans, or book your appointment. How can I help?",
+  ),
 }
 
 /** Renderiza **negrito** e listas com "- " sem usar HTML vindo da IA. */
@@ -60,7 +66,7 @@ export default function Chat() {
       const r = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ mensagens: novas.slice(1).map(({ role, texto }) => ({ role, texto })), agendados }),
+        body: JSON.stringify({ mensagens: novas.slice(1).map(({ role, texto }) => ({ role, texto })), agendados, idioma }),
       })
       const dados = await r.json().catch(() => ({}))
       let aviso: string | undefined
@@ -68,16 +74,18 @@ export default function Chat() {
         const criadoEm = new Date().toISOString()
         if (a.tipo === 'agendamento') {
           salvarAgendamento({ ...a, criadoEm })
-          aviso = `Consulta registrada: ${a.servico}, ${formatarData(a.data)} às ${a.hora} · protocolo ${a.protocolo}`
+          aviso = emIngles
+            ? `Appointment saved: ${a.servico}, ${formatarData(a.data)} at ${a.hora} · reference ${a.protocolo}`
+            : `Consulta registrada: ${a.servico}, ${formatarData(a.data)} às ${a.hora} · protocolo ${a.protocolo}`
         }
         if (a.tipo === 'transferencia') {
           salvarTransferencia({ motivo: a.motivo, resumo: a.resumo, criadoEm })
-          aviso = 'Conversa enviada para a recepção'
+          aviso = tr('Conversa enviada para a recepção', 'Chat sent to the front desk')
         }
       }
-      setMsgs((m) => [...m, { role: 'assistente', texto: dados.resposta || 'Não consegui responder agora. Tente de novo em instantes.', aviso }])
+      setMsgs((m) => [...m, { role: 'assistente', texto: dados.resposta || tr('Não consegui responder agora. Tente de novo em instantes.', "I couldn't answer just now. Please try again in a moment."), aviso }])
     } catch {
-      setMsgs((m) => [...m, { role: 'assistente', texto: 'Estou sem conexão no momento. Tente de novo em instantes.' }])
+      setMsgs((m) => [...m, { role: 'assistente', texto: tr('Estou sem conexão no momento. Tente de novo em instantes.', "I'm offline right now. Please try again in a moment.") }])
     } finally {
       setEnviando(false)
     }
@@ -86,12 +94,12 @@ export default function Chat() {
   const mostrarSugestoes = msgs.length <= 2 && !enviando
 
   return (
-    <div className="chat" role="region" aria-label="Conversa com a Clara, assistente da clínica">
+    <div className="chat" role="region" aria-label={tr('Conversa com a Clara, assistente da clínica', 'Chat with Clara, the clinic assistant')}>
       <div className="chat-topo">
         <div className="avatar" aria-hidden="true">C</div>
         <div>
           <strong>Clara</strong>
-          <span className="status"><i /> online · assistente com IA da Sorriso Claro</span>
+          <span className="status"><i /> online · {tr('assistente com IA da Sorriso Claro', 'AI assistant at Sorriso Claro')}</span>
         </div>
       </div>
 
@@ -104,7 +112,7 @@ export default function Chat() {
         ))}
         {enviando && (
           <div className="msg assistente">
-            <div className="bolha digitando" aria-label="Digitando"><span /><span /><span /></div>
+            <div className="bolha digitando" aria-label={tr('Digitando', 'Typing')}><span /><span /><span /></div>
           </div>
         )}
         {mostrarSugestoes && (
@@ -128,7 +136,7 @@ export default function Chat() {
           rows={1}
           value={texto}
           maxLength={600}
-          placeholder="Escreva sua mensagem..."
+          placeholder={tr('Escreva sua mensagem...', 'Type your message...')}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -137,11 +145,11 @@ export default function Chat() {
             }
           }}
         />
-        <button type="submit" disabled={!texto.trim() || enviando} aria-label="Enviar">
+        <button type="submit" disabled={!texto.trim() || enviando} aria-label={tr('Enviar', 'Send')}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 11.5 21 3l-8.5 18-2-7.5L3 11.5z" fill="currentColor" /></svg>
         </button>
       </form>
-      <p className="chat-rodape">Demonstração com clínica fictícia. Não envie dados pessoais.</p>
+      <p className="chat-rodape">{tr('Demonstração com clínica fictícia. Não envie dados pessoais.', 'Demo with a fictional clinic. Please do not share personal data.')}</p>
     </div>
   )
 }
