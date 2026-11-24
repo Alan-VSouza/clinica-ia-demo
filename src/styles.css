@@ -178,14 +178,8 @@ html.pl-rodape .actionbar { opacity: 0 !important; visibility: hidden; pointer-e
 }
 .nav__lang:hover { background: var(--surface, rgba(0,0,0,.04)); border-color: var(--ink); }
 .nav__lang:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-/* no computador fica colado ao botão principal, não a um vão inteiro da barra */
-@media (min-width: 1024px) {
-  .nav__actions + .nav__lang { margin-left: calc(var(--s-3) - var(--s-8)); }
-}
-@media (min-width: 1024px) and (max-width: 1279px) {
-  .nav__actions + .nav__lang { margin-left: calc(var(--s-3) - var(--s-6)); }
-}
+.nav__lang--phone { display: none; }
 @media (max-width: 1023px) {
-  .nav__lang { margin-left: auto; }
-  .nav__lang + .nav__toggle { margin-left: var(--s-2); }
+  .nav__lang--phone { display: inline-grid; margin-left: auto; }
+  .nav__lang--phone + .nav__toggle { margin-left: var(--s-2); }
 }

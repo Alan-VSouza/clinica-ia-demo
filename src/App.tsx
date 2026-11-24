@@ -122,8 +122,9 @@ export default function App() {
           </nav>
           <div className="nav__actions">
             <a className="btn btn--primary" href="#agendar">{tr('Marcar consulta com a Clara', 'Book with Clara')}</a>
+            <a className="nav__lang" href={linkOutroIdioma()} hrefLang={emIngles ? 'pt-BR' : 'en'} aria-label={emIngles ? 'Ver em português' : 'View in English'}>{emIngles ? 'PT' : 'EN'}</a>
           </div>
-          <a className="nav__lang" href={linkOutroIdioma()} hrefLang={emIngles ? 'pt-BR' : 'en'} aria-label={emIngles ? 'Ver em português' : 'View in English'}>{emIngles ? 'PT' : 'EN'}</a>
+          <a className="nav__lang nav__lang--phone" href={linkOutroIdioma()} hrefLang={emIngles ? 'pt-BR' : 'en'} aria-label={emIngles ? 'Ver em português' : 'View in English'}>{emIngles ? 'PT' : 'EN'}</a>
           <button className="nav__toggle" type="button" aria-expanded="false" aria-label="Menu">
             <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>
